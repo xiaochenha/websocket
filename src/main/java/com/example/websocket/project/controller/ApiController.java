@@ -18,15 +18,15 @@ public class ApiController {
 
     @GetMapping("/sendAllWebSocket")
     public String test() {
-        String text="你们好！这是websocket群体发送！";
+        String text="【websocket】 广播";
         webSocket.sendAllMessage(text);
         return text;
     }
 
-    @GetMapping("/sendOneWebSocket/{userName}")
-    public String sendOneWebSocket(@PathVariable("userName") String userName) {
-        String text=userName+" 你好！ 这是websocket单人发送！";
-        webSocket.sendOneMessage(userName,text);
+    @GetMapping("/sendOneWebSocket/{id}")
+    public String sendOneWebSocket(@PathVariable("id") String id) {
+        String text="【websocket】 点对点";
+        webSocket.sendOneMessage(id,text);
         return text;
     }
 

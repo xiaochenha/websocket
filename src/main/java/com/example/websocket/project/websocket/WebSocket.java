@@ -1,5 +1,6 @@
 package com.example.websocket.project.websocket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
@@ -12,8 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * websocket接口路径 id为用户独有ID号
+ */
+@Slf4j
 @Component
-@ServerEndpoint("/websocket/{userName}")
+@ServerEndpoint("/ws/{id}")
 public class WebSocket {
 
     private Session session;
@@ -22,17 +27,17 @@ public class WebSocket {
     private static Map<String,Session> sessionPool = new HashMap<String,Session>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam(value="userName")String userName) {
+    public void onOpen(Session session, @PathParam(value="id")String id) {
         this.session = session;
         webSockets.add(this);
-        sessionPool.put(userName, session);
-        System.out.println(userName+"【websocket消息】有新的连接，总数为:"+webSockets.size());
+        sessionPool.put(id, session);
+        log.info("【 websocket 】ID："+id+" 新的连接,目前连接总数为：" + webSockets.size());
     }
 
     @OnClose
     public void onClose() {
         webSockets.remove(this);
-        System.out.println("【websocket消息】连接断开，总数为:"+webSockets.size());
+        log.info("【 websocket 】有连接断开,目前总数为：" + webSockets.size());
     }
 
     @OnMessage
@@ -40,10 +45,9 @@ public class WebSocket {
         System.out.println("【websocket消息】收到客户端消息:"+message);
     }
 
-    // 此为广播消息
+    // 广播
     public void sendAllMessage(String message) {
         for(WebSocket webSocket : webSockets) {
-            System.out.println("【websocket消息】广播消息:"+message);
             try {
                 webSocket.session.getAsyncRemote().sendText(message);
             } catch (Exception e) {
@@ -52,10 +56,9 @@ public class WebSocket {
         }
     }
 
-    // 此为单点消息
-    public void sendOneMessage(String userName, String message) {
-        System.out.println("【websocket消息】单点消息:"+message);
-        Session session = sessionPool.get(userName);
+    // 点对点
+    public void sendOneMessage(String id, String message) {
+        Session session = sessionPool.get(id);
         if (session != null) {
             try {
                 session.getAsyncRemote().sendText(message);
